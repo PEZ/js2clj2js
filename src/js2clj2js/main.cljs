@@ -12,21 +12,21 @@
 (defn timer-init! [t-id]
   (let [t (js/performance.now)]
     (swap! !timers assoc-in [t-id :t] t)
-    (js/console.debug "Timer" t-id "initialized")))
+    (js/console.debug "Timer" (str t-id) "initialized")))
 
 (defn t-log! [t-id label]
   (let [t (js/performance.now)
         dt (- t (get-in @!timers [t-id :t]))]
     (swap! !timers assoc-in [t-id :t] t)
     (when-not (= :total label)
-      (js/console.debug label dt))
+      (js/console.debug (str label) dt))
     (cond
       (timed label) (swap! !timers assoc-in [t-id :log label] dt)
       (= :total label) (let [total (->> (get-in @!timers [t-id :log])
                                         vals
                                         (apply +))]
                          (swap! !timers assoc-in [t-id :total] total)
-                         (js/console.debug label total)))))
+                         (js/console.debug (str label) total)))))
 
 (defn ^:export js2clj2js []
   (timer-init! :js2clj2js)
@@ -42,7 +42,7 @@
           _ (t-log! :js2clj2js :clj->js)]
     (t-log! :js2clj2js :total)
     (js/console.table (clj->js (get-in  @!timers [:js2clj2js :log])))
-    (js/console.debug "Total ms:" :js2clj2js (get-in @!timers [:js2clj2js :total]))
+    (js/console.debug "Total ms: :js2clj2js" (get-in @!timers [:js2clj2js :total]))
 
     (world-map/set-data! js-polygons)
     js-polygons))
@@ -57,7 +57,7 @@
           _ (t-log! :js2js :transform)]
     (t-log! :js2js :total)
     (js/console.table (clj->js (get-in  @!timers [:js2js :log])))
-    (js/console.debug "Total ms:" :js2js (get-in @!timers [:js2js :total]))
+    (js/console.debug "Total ms: :js2js" (get-in @!timers [:js2js :total]))
 
     (world-map/set-data! js-polygons)
     js-polygons))
@@ -73,7 +73,7 @@
           _ (t-log! :js-mode-js2js :transform)]
     (t-log! :js-mode-js2js :total)
     (js/console.table (clj->js (get-in  @!timers [:js-mode-js2js :log])))
-    (js/console.debug "Total ms:" :js-mode-js2js (get-in @!timers [:js2js :total]))
+    (js/console.debug "Total ms: :js-mode-js2js" (get-in @!timers [:js2js :total]))
 
     (world-map/set-data! js-polygons)
     js-polygons))
