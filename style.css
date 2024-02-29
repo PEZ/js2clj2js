@@ -1,0 +1,24 @@
+* {
+  margin: 0;
+}
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#app {
+  margin: 0;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.controls {
+  flex: 0 0 auto;
+}
+
+#map {
+  flex-basis: 0px;
+  flex-grow: 1;
+}
