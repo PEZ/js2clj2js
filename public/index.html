@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="style.css" rel="stylesheet" type="text/css">
+    <link rel="icon" href="https://clojurescript.org/images/cljs-logo-icon-32.png">
+    
+    <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
+    <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet' />
+    
+    <title>js2clj2js: clj->js vs js-interop</title>
+    <script type="text/javascript">
+      window.onload = function() {
+        window.addEventListener('keydown', js2clj2js.main.key_down);
+      };      
+    </script>
+  </head>
+
+  <body>
+    <div id="app">
+      <div class="controls">        
+        <div id="replace">
+          <p>The ClojureScript app in this project should replace all this content.</p>
+          <p>Have you compiled the app and started the shadow-cljs watcher?</p>
+        </div>
+        <button onclick="js2clj2js.main.js2clj2js()">js2clj2js</button>
+        <button onclick="js2clj2js.main.js2js()">js2js</button>
+        <button onclick="js2clj2js.main.js_mode_js2js()">js-mode-js2js</button>
+      </div>
+      <div id="map">
+      </div>
+    </div>
+    <script src="js/compiled/main.js" type="text/javascript"></script>
+  </body>
+
+</html>
