@@ -17,6 +17,9 @@
 (def min-dollar-price 1.5)
 (def max-dollar-price 8.0)
 
+(def empty-geojson #js {:type "FeatureCollection"
+                        :features #js []})
+
 (defn- add-countries-layer! [^js map-instance]
   (let [on-hover (fn on-hover [^js e]
                    (let [^js features (.queryRenderedFeatures map-instance (.-point e) (clj->js {:layers [layer-id]}))
@@ -39,8 +42,7 @@
                        (.setHTML (html hiccup))
                        (.addTo map-instance))))]
     (.addSource map-instance source-id #js {:type "geojson"
-                                            :data (clj->js {:type "FeatureCollection"
-                                                            :features []})})
+                                            :data empty-geojson})
     (.addLayer map-instance (clj->js {:id layer-id
                                       :type "fill"
                                       :source source-id

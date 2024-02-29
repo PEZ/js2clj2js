@@ -29,6 +29,7 @@
                          (js/console.debug (str label) total)))))
 
 (defn ^:export js2clj2js []
+  (world-map/set-data! world-map/empty-geojson)
   (timer-init! :js2clj2js)
   (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
           _ (t-log! :js2clj2js :fetch)
@@ -48,6 +49,7 @@
     js-polygons))
 
 (defn ^:export js2js []
+  (world-map/set-data! world-map/empty-geojson)
   (timer-init! :js2js)
   (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
           _ (t-log! :js2js :fetch)
@@ -64,6 +66,7 @@
 
 
 (defn ^:export js-mode-js2js []
+  (world-map/set-data! world-map/empty-geojson)
   (timer-init! :js-mode-js2js)
   (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
           _ (t-log! :js-mode-js2js :fetch)
