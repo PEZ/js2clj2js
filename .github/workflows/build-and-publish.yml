@@ -1,0 +1,50 @@
+name: Build and Deploy
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@12.1
+        with:
+          cli: latest
+          bb: latest
+
+      - name: Cache clojure/java dependencies
+        uses: "actions/cache@v2"
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+          key: "${{ runner.os }}-clojure-${{ hashFiles('deps.edn') }}"
+          restore-keys: "${{ runner.os }}-clojure-"
+          
+      - name: Cache npm
+        uses: "actions/cache@v2"
+        with:
+          path: "~/.npm"
+          key: "${{ runner.os }}-npm-${{ hashFiles('package.json') }}"
+          restore-keys: "${{ runner.os }}-npm-"
+
+      - name: Build app to public directory
+        run: |
+          set -x
+          npx shadow-cljs release app
+
+      - name: Deploy app to gh-pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
