@@ -2,10 +2,10 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - '*'
+      - 'master'
   pull_request:
     branches:
-      - 'main'
+      - 'master'
 
 jobs:
   build-and-deploy:
@@ -43,7 +43,7 @@ jobs:
           npx shadow-cljs release app
 
       - name: Deploy app to gh-pages
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
