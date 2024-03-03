@@ -1,7 +1,7 @@
 (ns js2clj2js.main
   (:require [promesa.core :as p]
-            [js2clj2js.clj-ish :as clj-ish]
-            [js2clj2js.js-ish :as js-ish]
+            [js2clj2js.clj-data :as clj-data]
+            [js2clj2js.js-data :as js-data]
             [js2clj2js.js-mode :as js-mode]
             [js2clj2js.world-map :as world-map]))
 
@@ -37,7 +37,7 @@
           _ (t-log! :js2clj2js :json-parse)
           clj-input (js->clj json-input :keywordize-keys true)
           _ (t-log! :js2clj2js :js->clj)
-          clj-polygons (clj-ish/->geo-json clj-input)
+          clj-polygons (clj-data/->geo-json clj-input)
           _ (t-log! :js2clj2js :transform)
           js-polygons (clj->js clj-polygons)
           _ (t-log! :js2clj2js :clj->js)]
@@ -55,7 +55,7 @@
           _ (t-log! :js2js :fetch)
           json-input (.json response)
           _ (t-log! :js2js :json-parse)
-          js-polygons (js-ish/->geo-json json-input)
+          js-polygons (js-data/->geo-json json-input)
           _ (t-log! :js2js :transform)]
     (t-log! :js2js :total)
     (js/console.table (clj->js (get-in  @!timers [:js2js :log])))

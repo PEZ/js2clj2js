@@ -1,4 +1,4 @@
-(ns js2clj2js.js-ish
+(ns js2clj2js.js-data
   (:require [applied-science.js-interop :as j]))
 
 (j/defn ^:private bigmac-etc->feature [^js {:keys [bigmac-index country-name points]}]

@@ -1,4 +1,4 @@
-(ns js2clj2js.clj-ish)
+(ns js2clj2js.clj-data)
 
 (defn- bigmac-etc->feature [{:keys [bigmac-index country-name points]}]
   (let [{polygon-type :type open-coordinates :coordinates} points
