@@ -40,7 +40,7 @@ Thus: We have JSON in, need JavaScript data out, and there is a necessary transf
 
 You can try the demo app here: https://pez.github.io/js2clj2js/
 
-The demo app has three buttons, all of which give the same result: _The countries of the map are decorated according to their BigMac index, and get a small popup each with some details._ The difference is in _how_ they do it.
+The demo app has three buttons, all of which give the same result: _The countries of the map are decorated according to their BigMac index, and get a small popup each with some details._ The difference is in _how_ they do it. _Open the development console and try the buttons._
 * [clj_data.cljs](src/js2clj2js/clj_data.cljs) Button 1 goes the way over Clojure data and then back to JS data
 * The other two buttons use [applied-science/js-interop](https://github.com/applied-science/js-interop) to ergonomically work with the JS Data and transform it.
   * [js_data.cljs](src/js2clj2js/js_data.cljs) Button 2 uses macros like `js-interop/defn` and `js-interop/let` to retain the destructuring convenience of Clojure data
