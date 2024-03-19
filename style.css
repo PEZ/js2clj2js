@@ -1,10 +1,12 @@
 * {
   margin: 0;
 }
+
 body {
   margin: 0;
   padding: 0;
   height: 100%;
+  font-family: Arial, sans-serif;
 }
 
 #app {
@@ -16,9 +18,36 @@ body {
 
 .controls {
   flex: 0 0 auto;
+  padding: 20px;
+  height: auto;
+  margin-right: 100px;
 }
 
 #map {
   flex-basis: 0px;
   flex-grow: 1;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  color: white;
+  background-color: #4CAF50;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+
+.fork-me {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 0;
+  z-index: 1000;
 }
