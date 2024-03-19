@@ -58,11 +58,22 @@
     (.on map-instance "click" layer-id (fn [e] (on-hover e)))
     (.on map-instance "mouseleave" layer-id remove-popups)))
 
+(defn add-geolocate-control! [^js map-instance]
+  (let [geolocate-control ^js (new (.-GeolocateControl js/maplibregl)
+                                   #js {:positionOptions #js {:enableHighAccuracy true}
+                                        :trackUserLocation true
+                                        :fitBoundsOptions #js {:maxZoom 11}})
+        navigation-control ^js (new (.-NavigationControl js/maplibregl) #js {:showCompass true})]
+    (.addControl map-instance navigation-control "bottom-left")
+    (.addControl map-instance geolocate-control "bottom-left")
+    geolocate-control))
+
 (defn create-map! []
   (let [map-instance ^js (new (.-Map js/maplibregl) #js {:container "map"
                                                          :style "https://demotiles.maplibre.org/style.json"})]
     (reset! !map-instance map-instance)
     (.on map-instance "load" (fn [_e]
-                               (add-countries-layer! map-instance)))
+                               (add-countries-layer! map-instance)
+                               (add-geolocate-control! map-instance)))
     (.on map-instance "error" (fn [error]
                                 (throw error)))))
