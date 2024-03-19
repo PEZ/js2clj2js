@@ -104,7 +104,7 @@
 
 (defn ^:after-load rerender! []
   (let [replace (js/document.getElementById "replace")]
-    (set! (.-innerHTML replace) "App rendered")))
+    (set! (.-innerHTML replace) "")))
 
 (defn ^:export init! []
   (rerender!)
