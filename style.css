@@ -37,6 +37,7 @@ button {
   cursor: pointer;
   border-radius: 4px;
   margin-top: 10px;
+  touch-action: auto;
 }
 
 button:hover {
