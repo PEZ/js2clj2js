@@ -7,9 +7,9 @@
                         [(conj coords (first coords))])
         coordinates (if (= "polygon" polygon-type)
                       (close-polygon open-coordinates)
-                      (mapv (fn [coords]
-                              (close-polygon coords))
-                            open-coordinates))]
+                      (map (fn [coords]
+                             (close-polygon coords))
+                           open-coordinates))]
     {:type "Feature"
      :geometry {:type (if (= "polygon" polygon-type)
                         "Polygon"
@@ -21,6 +21,6 @@
                         :local-price (js/Number local_price))}))
 
 (defn ->geo-json [data]
-  (let [features (mapv bigmac-etc->feature data)]
+  (let [features (map bigmac-etc->feature data)]
     {:type "FeatureCollection"
      :features features}))
