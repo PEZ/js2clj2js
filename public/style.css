@@ -20,7 +20,6 @@ body {
   flex: 0 0 auto;
   padding: 20px;
   height: auto;
-  margin-right: 100px;
 }
 
 #map {
@@ -36,7 +35,6 @@ button {
   background-color: #4CAF50;
   cursor: pointer;
   border-radius: 4px;
-  margin-top: 10px;
   touch-action: auto;
 }
 
@@ -44,6 +42,20 @@ button:hover {
   background-color: #45a049;
 }
 
+.top-instructions {
+  margin-right: 100px;
+}
+
+.bottom-instructions {
+  margin-right: 20px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 10px 0;
+}
 
 .fork-me {
   position: absolute;
