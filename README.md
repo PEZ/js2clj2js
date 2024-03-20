@@ -51,7 +51,7 @@ The app has three buttons, all of which give the same result: _The countries of 
 * [clj_data.cljs](src/js2clj2js/clj_data.cljs) Button 1 goes the way over Clojure data and then back to JS data
 * The other two buttons use [applied-science/js-interop](https://github.com/applied-science/js-interop) to ergonomically work with the JS Data and transform it.
   * [js_data.cljs](src/js2clj2js/js_data.cljs) Button 2 uses macros like `js-interop/defn` and `js-interop/let` to retain the destructuring convenience of Clojure data
-  * [js_mode.cljs](src/js2clj2js/js_mode.cljs) Button 3 uses the experimental macro `js-interop.alpha/js` to enter “JS mode” and reach almost to the levels of [squint-js](https://github.com/squint-cljs/squint) in the feeling of working with JavaScript data from the comfort of Clojure.
+  * [js_mode.cljs](src/js2clj2js/js_mode.cljs) Button 3 uses [the experimental macro `js-interop.alpha/js`](https://github.com/applied-science/js-interop/pull/32) to enter “JS mode” and reach almost to the levels of [squint-js](https://github.com/squint-cljs/squint) in the feeling of working with JavaScript data from the comfort of Clojure.
 
 **NB**: Both the `js-interop` wielding buttons have the same performance profile. They differ in their ergonomics.
 
