@@ -8,7 +8,7 @@
 
 (def !timers (atom {}))
 
-(def timed #{:fetch :json-parse :clj->js :js->clj :transform})
+(def timed #{:fetch :json-parse :clj->js :js->clj :bean->js :bean->clj :transform})
 
 (defn timer-init! [t-id]
   (let [t (js/performance.now)]
@@ -57,11 +57,11 @@
           json-input (.json response)
           _ (t-log! :bean-js2clj2js :json-parse)
           clj-input (bean/->clj json-input :keywordize-keys true)
-          _ (t-log! :bean-js2clj2js :js->clj)
+          _ (t-log! :bean-js2clj2js :bean->clj)
           clj-polygons (clj-data/->geo-json clj-input)
           _ (t-log! :bean-js2clj2js :transform)
           js-polygons (bean/->js clj-polygons)
-          _ (t-log! :bean-js2clj2js :clj->js)]
+          _ (t-log! :bean-js2clj2js :bean->js)]
     (t-log! :bean-js2clj2js :total)
     (js/console.table (clj->js (get-in  @!timers [:bean-js2clj2js :log])))
     (js/console.debug "Total ms: :bean-js2clj2js" (get-in @!timers [:bean-js2clj2js :total]))

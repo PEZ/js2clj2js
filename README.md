@@ -11,9 +11,9 @@ Consider this time budget when loading some data into a JavaScript library:
 | fetch      | 40  |  N    |
 | json-parse | 431 |  Y/N    |
 | js->clj    | 510 |  Y   |
-| transform  | 4   |  Y    |
+| transform  | 2   |  Y    |
 | clj->js    | 359 |  Y    |
-| *Total*  | *1344* |  *873 - 1304*    |
+| *Total*  | *1344* |  *873 <-> 1304*    |
 
 vs
 
@@ -21,8 +21,8 @@ vs
 |------------|----:|------|
 | fetch      | 40  |  N    |
 | json-parse | 431 |  Y/N    |
-| transform  | 4   |  Y    |
-| *Total*  | *1344* |  *4-435*    |
+| transform  | 2   |  Y    |
+| *Total*  | *1344* |  *4 <-> 435*    |
 
 As Clojure programmers we are keen on using Clojure data. It is immutable and has wonderful facilities for transformation from just about anything to just about anything else. As ClojureScript programmers, we are embedded in JavaScript land, with its mutable objects and inferior transformation help. Often it makes the most sense to convert any JavaScript data when it enters our applications.
 
@@ -51,9 +51,10 @@ You can try the demo app here: https://pez.github.io/js2clj2js/
 The app has three buttons, all of which give the same result: _The countries of the map are decorated according to their BigMac index + get a hover small popup each with some details._ The difference is in _how_ they do it. _Open the development console and try the buttons._
 
 * [clj_data.cljs](src/js2clj2js/clj_data.cljs) Button 1 goes the way over Clojure data and then back to JS data
-* The other two buttons use [applied-science/js-interop](https://github.com/applied-science/js-interop) to ergonomically work with the JS Data and transform it.
+* Buttons 2 and 3 use [applied-science/js-interop](https://github.com/applied-science/js-interop) to ergonomically work with the JS Data and transform it.
   * [js_data.cljs](src/js2clj2js/js_data.cljs) Button 2 uses macros like `js-interop/defn` and `js-interop/let` to retain the destructuring convenience of Clojure data
   * [js_mode.cljs](src/js2clj2js/js_mode.cljs) Button 3 uses [the experimental macro `js-interop.alpha/js`](https://github.com/applied-science/js-interop/pull/32) to enter “JS mode” and reach almost to the levels of [squint-js](https://github.com/squint-cljs/squint) in the feeling of working with JavaScript data from the comfort of Clojure.
+* Button 4 uses the same transform function as Button 1, but converts to and from Clojure data using [cljs-bean](https://github.com/mfikes/cljs-bean) (see [the update below](#update-cljs-bean) for more on this)
 
 **NB**: Both the `js-interop` wielding buttons have the same performance profile. They differ in their ergonomics.
 
@@ -69,9 +70,26 @@ Anyway, when the performance hit is noticeable by the user, and the transformati
 
 ## Update: cljs-bean
 
-On X, [Martin Klepsch made me aware](https://twitter.com/martinklepsch/status/1770384388565397941) of yet another option: [cljs-bean](https://github.com/mfikes/cljs-bean). From my quickest read, amongst other things, it seems to offer more performant conversions, which may push the point where you want to trade Clojure convenience for performance significantly.
+On X, [Martin Klepsch made me aware](https://twitter.com/martinklepsch/status/1770384388565397941) of yet another option: [cljs-bean](https://github.com/mfikes/cljs-bean). It offers full Clojure ergonomics for transforming data, at least for the use case in this project. I do not dare describe how it works, but I think that `bean/->clj` sort of puts a “layer” of Clojure data access on the JS data and that this lets all Clojure functions work on it. And to convert to JS we then use `bean/->js`. The demo app is updates with a button for utilizing this, as mentioned above. Here's how the the time budget is spent.
 
-I'll update the project to include a **cljs-bean** button. Or maybe you want to do that update? PR welcome!
+| Step       | ms  | Locks UI thread? |
+|------------|----:|------|
+| fetch      | 40  |  N    |
+| json-parse | 431 |  Y/N    |
+| beam->clj  | 0   |  Y   |
+| transform  | 6   |  Y    |
+| beam->js   | 500 |  Y    |
+| *Total*  | *1344* |  *504 <-> 935*    |
+
+Three things sticks out:
+
+1. The “conversion” to Clojure data takes so little time that it can't be measured
+2. The transform takes a bit more time (3-4 times more according to my unscientific measurements)
+   * This takes so little time for the data in this app that it largely doesn't matter anyway, I think
+3. The conversion back to JS data takes significantly more time than with regular Clojure data and `clj->js`
+   * But not nearly as much time as we gain from the conversion to Clojure data taking no time at all
+
+This means that **beam-cljs** is not a viable option for the use case in this article/demo app. But for cases where you get JSON/JS in and do not need to produce JS data out it is bloody excellent! This find alone made it worth spending the time writing this article and app.
 
 ## Update: string key destructuring
 
