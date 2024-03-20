@@ -6,23 +6,23 @@ Do you love Clojure convenience and also need to create a lot of JS data from a 
 
 Consider this time budget when loading some data into a JavaScript library: 
 
-| Step       | ms  | Locks UI thread? |
-|------------|----:|------|
-| fetch      | 40  |  N    |
-| response->json | 431 |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
-| js->clj    | 510 |  Y   |
-| transform  | 1   |  Y    |
-| clj->js    | 359 |  Y    |
-| *Total*  | *1341* |  *870 <-> 1301*    |
+| Step           | ms     | Locks UI thread? |
+|----------------|-------:|------|
+| fetch          | 40     |  N    |
+| response->json | 431    |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
+| js->clj        | 510    |  Y   |
+| transform      | 1      |  Y    |
+| clj->js        | 359    |  Y    |
+| *Total*        | *1341* |  *870 <-> 1301*    |
 
 vs
 
-| Step       | ms  | Locks UI thread? |
-|------------|----:|------|
-| fetch      | 40  |  N    |
-| response->json | 431 |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
-| transform  | 3   |  Y    |
-| *Total*  | *474* |  *3 <-> 434*    |
+| Step           | ms    | Locks UI thread? |
+|----------------|------:|------|
+| fetch          | 40    |  N    |
+| response->json | 431   |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
+| transform      | 3     |  Y    |
+| *Total*        | *474* |  *3 <-> 434*    |
 
 As Clojure programmers we are keen on using Clojure data. It is immutable and has wonderful facilities for transformation from just about anything to just about anything else. As ClojureScript programmers, we are embedded in JavaScript land, with its mutable objects and inferior transformation help. Often it makes the most sense to convert any JavaScript data when it enters our applications.
 
@@ -30,7 +30,7 @@ However, sometimes we get JavaScript (or more often JSON) in and need to feed Ja
 
 For the first part of the conversion, from JSON -> Clojure we can [use Transit to speed things up 20-30X](https://swannodette.github.io/2014/07/26/transit-clojurescript/), if we accept that we'll get string keys, instead of keywords keys. “A small price to pay” says David Nolen. ~~I'd say that's controversial. We lose a lot of the Clojure data ergonomics, especially destructuring. Sure, for some situations this tradeoff makes perfect sense.~~ Also, if you control both the server and the client, and use civilized tools (i.e. Clojure and ClojureScript) at both ends, going all in Transit makes a ton of sense.
 
-(My bad. See [below](#update-string-key-destructuring) for an update about string key destructuring.)
+(My bad. See [below](#update-transit) for an update about Transit and string key destructuring.)
 
 For the next step of the conversion, from Clojure to JavaScript we don't have a viable alternative to using `clj->js`, afaik. If the performance hit from that is unacceptable, we need to stay in JavaScript land.
 
@@ -55,6 +55,7 @@ The app has three buttons, all of which give the same result: _The countries of 
   * [js_data.cljs](src/js2clj2js/js_data.cljs) Button 2 uses macros like `js-interop/defn` and `js-interop/let` to retain the destructuring convenience of Clojure data
   * [js_mode.cljs](src/js2clj2js/js_mode.cljs) Button 3 uses [the experimental macro `js-interop.alpha/js`](https://github.com/applied-science/js-interop/pull/32) to enter “JS mode” and reach almost to the levels of [squint-js](https://github.com/squint-cljs/squint) in the feeling of working with JavaScript data from the comfort of Clojure.
 * Button 4 uses the same transform function as Button 1, but converts to and from Clojure data using [cljs-bean](https://github.com/mfikes/cljs-bean) (see [the update below](#update-cljs-bean) for more on this)
+* [clj_data_transit.cljs](src/js2clj2js/clj_data_transit.cljs) Button 5 skips the `response.json()` call and only picks the text from the response object and then we use `transit/read` to turn it in to string-keyed Clojure data, which is almost as convenient to work with as keyword-keyed data, at least considering the performance boost it gives compared to using `js->clj`.
 
 **NB**: Both the `js-interop` wielding buttons have the same performance profile. They differ in their ergonomics.
 
@@ -66,20 +67,20 @@ Working with JavaScript data isn't exactly civilized business. It's mainly somet
 
 In other situations bringing in dependencies such as the **js-interop** library aren't worth it. Reading `(some-> event .-target .-value)` is very clear.
 
-Anyway, when the performance hit is noticeable by the user, and the transformation is just a tiny bit involved, **js-interop** is your friend. It lets you keep much of your ergonomics while delivering performance to the user. Especially if **js-mode** leaves the experimental stage.
+Anyway, when the performance hit is noticeable by the user, and transformation is involved, **js-interop** is your friend. It lets you keep much of your ergonomics while delivering performance to the user. Especially if **js-mode** leaves the experimental stage.
 
 ## Update: cljs-bean
 
 On X, [Martin Klepsch made me aware](https://twitter.com/martinklepsch/status/1770384388565397941) of yet another option: [cljs-bean](https://github.com/mfikes/cljs-bean). It offers full Clojure ergonomics for transforming data, at least for the use case in this project. I do not dare describe how it works, but I think that `bean/->clj` sort of puts a “layer” of Clojure data access on the JS data and that this lets all Clojure functions work on it. And to convert to JS we then use `bean/->js`. The demo app is updates with a button for utilizing this, as mentioned above. Here's how the the time budget is spent.
 
-| Step       | ms  | Locks UI thread? |
-|------------|----:|------|
-| fetch      | 40  |  N    |
-| response->json | 431 |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
-| beam->clj  | 0   |  Y   |
-| transform  | 6   |  Y    |
-| beam->js   | 500 |  Y    |
-| *Total*  | *977* |  *506 <-> 937*    |
+| Step           | ms    | Locks UI thread? |
+|----------------|------:|------|
+| fetch          | 40    |  N    |
+| response->json | 431   |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
+| beam->clj      | 0     |  Y   |
+| transform      | 6     |  Y    |
+| beam->js       | 500   |  Y    |
+| *Total*        | *977* |  *506 <-> 937*    |
 
 Three things sticks out:
 
@@ -91,9 +92,20 @@ Three things sticks out:
 
 This means that **beam-cljs** is not a viable option for the use case in this article/demo app. But for cases where you get JSON/JS in and do not need to produce JS data out it is bloody excellent! This find alone made it worth spending the time writing this article and app.
 
-## Update: string key destructuring
+## Update: Transit
 
-At [/r/clojure I learnt that you can too destructure string keys](https://www.reddit.com/r/Clojure/comments/1bja3cf/comment/kvqfv34/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button), using `:str`. This may be changing the ergonomics calculation for the Transit option a lot. I will add such an example.
+At [/r/clojure I learnt that you can too destructure string keys](https://www.reddit.com/r/Clojure/comments/1bja3cf/comment/kvqfv34/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button), using `:str`. This may be changing the ergonomics calculation for the Transit option a lot, so I have now added a Transit example to the demo app. Here's the time budget:
+
+| Step              | ms     | Locks UI thread? |
+|-------------------|-------:|------|
+| fetch             | 40     |  N    |
+| response->string  | 267    |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
+| transit-json->clj | 216    |  Y   |
+| transform         | 1      |  Y    |
+| clj->js           | 359    |  Y    |
+| *Total*           | *883*  |  *576 <-> 843*    |
+
+We can see that David Nolen was very right about performance gains between `js->clj` and using `transit/read`. In addition to that we don't need to use JS to convert the response to JSON, so we save time there as well. This is quite much better, performance-wise than the naïve `js->clj` approach. And about the small price we pay, string key destructuring is very convenient! We are still locking the UI thread much longer than when using js-interop, though, so it is not really an option for the use case of the demo scenario.
 
 ## Is the UI thread locking or not?
 
