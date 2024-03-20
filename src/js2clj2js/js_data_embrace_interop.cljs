@@ -35,7 +35,7 @@
      (assoc (bigmac-index json-data)
             :country-name country-name)}))
 
-(defn ->geo-json [data]
-  (let [features (.map bigmac-etc->feature data)]
+(defn ->geo-json [json-data]
+  (let [features (.map bigmac-etc->feature json-data)]
     #js {:type "FeatureCollection"
          :features (into-array features)}))
