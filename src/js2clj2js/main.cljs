@@ -76,7 +76,7 @@
           _ (t-log! :js-mode-js2js :transform)]
     (t-log! :js-mode-js2js :total)
     (js/console.table (clj->js (get-in  @!timers [:js-mode-js2js :log])))
-    (js/console.debug "Total ms: :js-mode-js2js" (get-in @!timers [:js2js :total]))
+    (js/console.debug "Total ms: :js-mode-js2js" (get-in @!timers [:js-mode-js2js :total]))
 
     (world-map/set-data! js-polygons)
     js-polygons))
