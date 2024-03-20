@@ -53,7 +53,7 @@ The app has three buttons, all of which give the same result: _The countries of 
   * [js_data.cljs](src/js2clj2js/js_data.cljs) Button 2 uses macros like `js-interop/defn` and `js-interop/let` to retain the destructuring convenience of Clojure data
   * [js_mode.cljs](src/js2clj2js/js_mode.cljs) Button 3 uses the experimental macro `js-interop.alpha/js` to enter “JS mode” and reach almost to the levels of [squint-js](https://github.com/squint-cljs/squint) in the feeling of working with JavaScript data from the comfort of Clojure.
 
-**NB**: Both `js-interop` functions have the same performance profile. I included both to be able to compare their ergonomics.
+**NB**: Both the `js-interop` wielding buttons have the same performance profile. They differ in their ergonomics.
 
 It's not all bliss, of course. We're still dealing with mutable(!) data. And we do need to sprinkle in the occasional `#js` tag, and do things like `js-interop/push!`, and try not to forget to use `into-array` to create JS arrays out of Clojure vectors/lists. It's price to pay for the performance gain. As small a price as I know about. The performance gain is quite significant in this case. The demo app lets you _feel_ the difference.
 
