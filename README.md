@@ -11,9 +11,9 @@ Consider this time budget when loading some data into a JavaScript library:
 | fetch      | 40  |  N    |
 | response->json | 431 |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
 | js->clj    | 510 |  Y   |
-| transform  | 2   |  Y    |
+| transform  | 1   |  Y    |
 | clj->js    | 359 |  Y    |
-| *Total*  | *1344* |  *873 <-> 1304*    |
+| *Total*  | *1341* |  *870 <-> 1301*    |
 
 vs
 
@@ -21,8 +21,8 @@ vs
 |------------|----:|------|
 | fetch      | 40  |  N    |
 | response->json | 431 |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
-| transform  | 2   |  Y    |
-| *Total*  | *1344* |  *4 <-> 435*    |
+| transform  | 3   |  Y    |
+| *Total*  | *474* |  *3 <-> 434*    |
 
 As Clojure programmers we are keen on using Clojure data. It is immutable and has wonderful facilities for transformation from just about anything to just about anything else. As ClojureScript programmers, we are embedded in JavaScript land, with its mutable objects and inferior transformation help. Often it makes the most sense to convert any JavaScript data when it enters our applications.
 
@@ -79,7 +79,7 @@ On X, [Martin Klepsch made me aware](https://twitter.com/martinklepsch/status/17
 | beam->clj  | 0   |  Y   |
 | transform  | 6   |  Y    |
 | beam->js   | 500 |  Y    |
-| *Total*  | *1344* |  *504 <-> 935*    |
+| *Total*  | *977* |  *506 <-> 937*    |
 
 Three things sticks out:
 
