@@ -94,7 +94,7 @@ This means that **beam-cljs** is not a viable option for the use case in this ar
 
 ## Update: Transit
 
-At [/r/clojure I learnt that you can too destructure string keys](https://www.reddit.com/r/Clojure/comments/1bja3cf/comment/kvqfv34/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button), using `:str`. This may be changing the ergonomics calculation for the Transit option a lot, so I have now added a Transit example to the demo app. Here's the time budget:
+At [/r/clojure I learnt that you can too destructure string keys](https://www.reddit.com/r/Clojure/comments/1bja3cf/comment/kvqfv34/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button), using `:strs` instead of `:keys`. This changes the ergonomics calculation for the Transit option a lot, so I have now added a Transit example to the demo app. Here's the time budget:
 
 | Step              | ms     | Locks UI thread? |
 |-------------------|-------:|------|
