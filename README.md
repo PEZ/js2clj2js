@@ -1,4 +1,4 @@
-# js2clj2js: Balancing performance and developer ergonomics
+# Balancing performance and developer ergonomics
 
 Do you love Clojure convenience and also need to create a lot of JS data from a lot of JS data using ClojureScript? [applied-science/js-interop](https://github.com/applied-science/js-interop) to the rescue!
 
