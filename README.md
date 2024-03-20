@@ -64,3 +64,9 @@ Working with JavaScript data isn't exactly civilized business. It's mainly somet
 In other situations bringing in dependencies such as the **js-interop** library aren't worth it. Reading `(some-> event .-target .-value)` is very clear.
 
 Anyway, when the performance hit is noticeable by the user, and the transformation is just a tiny bit involved, **js-interop** is your friend. It lets you keep much of your ergonomics while delivering performance to the user. Especially if **js-mode** leaves the experimental stage.
+
+## Update: cljs-bean
+
+On X, [Martin Klepsch made me aware](https://twitter.com/martinklepsch/status/1770384388565397941) of yet another option: [cljs-bean](https://github.com/mfikes/cljs-bean). From my quickest read, amongst other things, it seems to offer more performant conversions, which may push the point where you want to trade Clojure convenience for performance significantly.
+
+I'll update the project to include a **cljs-bean** button. Or maybe you want to do that update? PR welcome!
