@@ -9,7 +9,7 @@ Consider this time budget when loading some data into a JavaScript library:
 | Step       | ms  | Locks UI thread? |
 |------------|----:|------|
 | fetch      | 40  |  N    |
-| json-parse | 431 |  Y/N    |
+| response->json | 431 |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
 | js->clj    | 510 |  Y   |
 | transform  | 2   |  Y    |
 | clj->js    | 359 |  Y    |
@@ -20,13 +20,13 @@ vs
 | Step       | ms  | Locks UI thread? |
 |------------|----:|------|
 | fetch      | 40  |  N    |
-| json-parse | 431 |  Y/N    |
+| response->json | 431 |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
 | transform  | 2   |  Y    |
 | *Total*  | *1344* |  *4 <-> 435*    |
 
 As Clojure programmers we are keen on using Clojure data. It is immutable and has wonderful facilities for transformation from just about anything to just about anything else. As ClojureScript programmers, we are embedded in JavaScript land, with its mutable objects and inferior transformation help. Often it makes the most sense to convert any JavaScript data when it enters our applications.
 
-However, sometimes we get JavaScript (or more often JSON) in and need to feed JavaScript data to some library. This demo project is about this scenario. As [Mike Fikes warns us](https://blog.fikesfarm.com/posts/2017-11-09-avoid-converting-javascript-objects.html), if the data is large, the convertions can impact the performance of our app, and even make the UI non-responsive. This demo project is about keeping as much of the Clojure ergonomics as we can, while still caring about performance
+However, sometimes we get JavaScript (or more often JSON) in and need to feed JavaScript data to some library. This demo project is about this scenario. As [Mike Fikes warns us](https://blog.fikesfarm.com/posts/2017-11-09-avoid-converting-javascript-objects.html), if the data is large, the convertions can impact the performance of our app, and even make the UI non-responsive. This demo project is about keeping as much of the Clojure ergonomics as we can, while still caring about performance.
 
 For the first part of the conversion, from JSON -> Clojure we can [use Transit to speed things up 20-30X](https://swannodette.github.io/2014/07/26/transit-clojurescript/), if we accept that we'll get string keys, instead of keywords keys. “A small price to pay” says David Nolen. ~~I'd say that's controversial. We lose a lot of the Clojure data ergonomics, especially destructuring. Sure, for some situations this tradeoff makes perfect sense.~~ Also, if you control both the server and the client, and use civilized tools (i.e. Clojure and ClojureScript) at both ends, going all in Transit makes a ton of sense.
 
@@ -75,7 +75,7 @@ On X, [Martin Klepsch made me aware](https://twitter.com/martinklepsch/status/17
 | Step       | ms  | Locks UI thread? |
 |------------|----:|------|
 | fetch      | 40  |  N    |
-| json-parse | 431 |  Y/N    |
+| response->json | 431 |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
 | beam->clj  | 0   |  Y   |
 | transform  | 6   |  Y    |
 | beam->js   | 500 |  Y    |
@@ -94,3 +94,7 @@ This means that **beam-cljs** is not a viable option for the use case in this ar
 ## Update: string key destructuring
 
 At [/r/clojure I learnt that you can too destructure string keys](https://www.reddit.com/r/Clojure/comments/1bja3cf/comment/kvqfv34/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button), using `:str`. This may be changing the ergonomics calculation for the Transit option a lot. I will add such an example.
+
+## Is the UI thread locking or not?
+
+The reason the `response->json` and `response->text` steps are listed as both locking and not locking, is that, as far as I understand things, the calls are spent partially on fetching data (non-locking) and part of the call is spent on parsing to json (locking) or converting to a string (locking). The *Total* for the *Locks UI thread?* column is given as a range because of this unknown part. I think that it is safe to assume that most of the time is fetching (i.e. non.locking)? I mean, how long time could it take to get the text out of the response object?

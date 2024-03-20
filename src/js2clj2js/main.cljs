@@ -1,14 +1,17 @@
 (ns js2clj2js.main
-  (:require [cljs-bean.core :as bean]
+  (:require [cognitect.transit :as transit]
+            [cljs-bean.core :as bean]
             [promesa.core :as p]
             [js2clj2js.clj-data :as clj-data]
+            [js2clj2js.clj-data-transit :as clj-data-transit]
             [js2clj2js.js-data :as js-data]
             [js2clj2js.js-mode :as js-mode]
             [js2clj2js.world-map :as world-map]))
 
 (def !timers (atom {}))
 
-(def timed #{:fetch :json-parse :clj->js :js->clj :bean->js :bean->clj :transform})
+(def timed #{:fetch :response->json :clj->js :js->clj :bean->js :bean->clj :transform
+             :response->string :transit-json->clj})
 
 (defn timer-init! [t-id]
   (let [t (js/performance.now)]
@@ -35,7 +38,7 @@
   (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
           _ (t-log! :js2clj2js :fetch)
           json-input (.json response)
-          _ (t-log! :js2clj2js :json-parse)
+          _ (t-log! :js2clj2js :response->json)
           clj-input (js->clj json-input :keywordize-keys true)
           _ (t-log! :js2clj2js :js->clj)
           clj-polygons (clj-data/->geo-json clj-input)
@@ -55,7 +58,7 @@
   (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
           _ (t-log! :bean-js2clj2js :fetch)
           json-input (.json response)
-          _ (t-log! :bean-js2clj2js :json-parse)
+          _ (t-log! :bean-js2clj2js :response->json)
           clj-input (bean/->clj json-input :keywordize-keys true)
           _ (t-log! :bean-js2clj2js :bean->clj)
           clj-polygons (clj-data/->geo-json clj-input)
@@ -69,13 +72,35 @@
     (world-map/set-data! js-polygons)
     js-polygons))
 
+(def reader (transit/reader :json))
+
+(defn ^:export transit-js2clj2js []
+  (world-map/set-data! world-map/empty-geojson)
+  (timer-init! :transit-js2clj2js)
+  (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
+          _ (t-log! :transit-js2clj2js :fetch)
+          json-string (-> response .text)
+          _ (t-log! :transit-js2clj2js :response->string)
+          clj-input (transit/read reader json-string)
+          _ (t-log! :transit-js2clj2js :transit-json->clj)
+          clj-polygons (clj-data-transit/->geo-json clj-input)
+          _ (t-log! :transit-js2clj2js :transform)
+          js-polygons (clj->js clj-polygons)
+          _ (t-log! :transit-js2clj2js :clj->js)]
+    (t-log! :transit-js2clj2js :total)
+    (js/console.table (clj->js (get-in  @!timers [:transit-js2clj2js :log])))
+    (js/console.debug "Total ms: :transit-js2clj2js" (get-in @!timers [:transit-js2clj2js :total]))
+
+    (world-map/set-data! js-polygons)
+    js-polygons))
+
 (defn ^:export js2js []
   (world-map/set-data! world-map/empty-geojson)
   (timer-init! :js2js)
   (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
           _ (t-log! :js2js :fetch)
           json-input (.json response)
-          _ (t-log! :js2js :json-parse)
+          _ (t-log! :js2js :response->json)
           js-polygons (js-data/->geo-json json-input)
           _ (t-log! :js2js :transform)]
     (t-log! :js2js :total)
@@ -92,7 +117,7 @@
   (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
           _ (t-log! :js-mode-js2js :fetch)
           json-input (.json response)
-          _ (t-log! :js-mode-js2js :json-parse)
+          _ (t-log! :js-mode-js2js :response->json)
           js-polygons (js-mode/->geo-json json-input)
           _ (t-log! :js-mode-js2js :transform)]
     (t-log! :js-mode-js2js :total)
@@ -103,6 +128,8 @@
     js-polygons))
 
 (comment
+  (transit-js2clj2js)
+
   (p/let [js2clj2js-data (js2clj2js)
           js2js-data (js2js)
           js-mode-js2js-data (js-mode-js2js)
@@ -123,6 +150,7 @@
     "Digit2" (js2js)
     "Digit3" (js-mode-js2js)
     "Digit4" (bean-js2clj2js)
+    "Digit5" (transit-js2clj2js)
     :nop))
 
 (defn ^:after-load rerender! []
