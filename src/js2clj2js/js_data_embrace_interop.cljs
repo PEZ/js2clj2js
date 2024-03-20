@@ -36,6 +36,6 @@
             :country-name country-name)}))
 
 (defn ->geo-json [data]
-  (let [features (mapv bigmac-etc->feature data)]
+  (let [features (.map bigmac-etc->feature data)]
     #js {:type "FeatureCollection"
          :features (into-array features)}))
