@@ -1,5 +1,6 @@
 (ns js2clj2js.main
-  (:require [promesa.core :as p]
+  (:require [cljs-bean.core :as bean]
+            [promesa.core :as p]
             [js2clj2js.clj-data :as clj-data]
             [js2clj2js.js-data :as js-data]
             [js2clj2js.js-mode :as js-mode]
@@ -48,6 +49,26 @@
     (world-map/set-data! js-polygons)
     js-polygons))
 
+(defn ^:export bean-js2clj2js []
+  (world-map/set-data! world-map/empty-geojson)
+  (timer-init! :bean-js2clj2js)
+  (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
+          _ (t-log! :bean-js2clj2js :fetch)
+          json-input (.json response)
+          _ (t-log! :bean-js2clj2js :json-parse)
+          clj-input (bean/->clj json-input :keywordize-keys true)
+          _ (t-log! :bean-js2clj2js :js->clj)
+          clj-polygons (clj-data/->geo-json clj-input)
+          _ (t-log! :bean-js2clj2js :transform)
+          js-polygons (bean/->js clj-polygons)
+          _ (t-log! :bean-js2clj2js :clj->js)]
+    (t-log! :bean-js2clj2js :total)
+    (js/console.table (clj->js (get-in  @!timers [:bean-js2clj2js :log])))
+    (js/console.debug "Total ms: :bean-js2clj2js" (get-in @!timers [:bean-js2clj2js :total]))
+
+    (world-map/set-data! js-polygons)
+    js-polygons))
+
 (defn ^:export js2js []
   (world-map/set-data! world-map/empty-geojson)
   (timer-init! :js2js)
@@ -85,7 +106,8 @@
   (p/let [js2clj2js-data (js2clj2js)
           js2js-data (js2js)
           js-mode-js2js-data (js-mode-js2js)
-          clj-data (mapv js->clj [js2clj2js-data js2js-data js-mode-js2js-data])
+          bean-js2clj2js-data (bean-js2clj2js)
+          clj-data (mapv js->clj [js2clj2js-data js2js-data js-mode-js2js-data bean-js2clj2js-data])
           equality (apply = clj-data)]
     (tap> clj-data)
     (def js2clj2js-data js2clj2js-data)
@@ -100,6 +122,7 @@
     "Digit1" (js2clj2js)
     "Digit2" (js2js)
     "Digit3" (js-mode-js2js)
+    "Digit4" (bean-js2clj2js)
     :nop))
 
 (defn ^:after-load rerender! []
