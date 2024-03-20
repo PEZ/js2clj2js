@@ -28,7 +28,9 @@ As Clojure programmers we are keen on using Clojure data. It is immutable and ha
 
 However, sometimes we get JavaScript (or more often JSON) in and need to feed JavaScript data to some library. This demo project is about this scenario. As [Mike Fikes warns us](https://blog.fikesfarm.com/posts/2017-11-09-avoid-converting-javascript-objects.html), if the data is large, the convertions can impact the performance of our app, and even make the UI non-responsive. This demo project is about keeping as much of the Clojure ergonomics as we can, while still caring about performance
 
-For the first part of the conversion, from JSON -> Clojure we can [use Transit to speed things up 20-30X](https://swannodette.github.io/2014/07/26/transit-clojurescript/), if we accept that we'll get string keys, instead of keywords keys. “A small price to pay” says David Nolen. I'd say that's controversial. We lose a lot of the Clojure data ergonomics, especially destructuring. Sure, for some situations this tradeoff makes perfect sense. Also, if you control both the server and the client, and use civilized tools (i.e. Clojure and ClojureScript) at both ends, going all in Transit makes a ton of sense.
+For the first part of the conversion, from JSON -> Clojure we can [use Transit to speed things up 20-30X](https://swannodette.github.io/2014/07/26/transit-clojurescript/), if we accept that we'll get string keys, instead of keywords keys. “A small price to pay” says David Nolen. ~~I'd say that's controversial. We lose a lot of the Clojure data ergonomics, especially destructuring. Sure, for some situations this tradeoff makes perfect sense.~~ Also, if you control both the server and the client, and use civilized tools (i.e. Clojure and ClojureScript) at both ends, going all in Transit makes a ton of sense.
+
+(My bad. See [below](#update-string-key-destructuring) for an update about string key destructuring.)
 
 For the next step of the conversion, from Clojure to JavaScript we don't have a viable alternative to using `clj->js`, afaik. If the performance hit from that is unacceptable, we need to stay in JavaScript land.
 
@@ -70,3 +72,7 @@ Anyway, when the performance hit is noticeable by the user, and the transformati
 On X, [Martin Klepsch made me aware](https://twitter.com/martinklepsch/status/1770384388565397941) of yet another option: [cljs-bean](https://github.com/mfikes/cljs-bean). From my quickest read, amongst other things, it seems to offer more performant conversions, which may push the point where you want to trade Clojure convenience for performance significantly.
 
 I'll update the project to include a **cljs-bean** button. Or maybe you want to do that update? PR welcome!
+
+## Update: string key destructuring
+
+At [/r/clojure I learnt that you can too destructure string keys](https://www.reddit.com/r/Clojure/comments/1bja3cf/comment/kvqfv34/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button), using `:str`. This may be changing the ergonomics calculation for the Transit option a lot. I will add such an example.
