@@ -3,6 +3,7 @@
             [js2clj2js.clj-data :as clj-data]
             [js2clj2js.js-data :as js-data]
             [js2clj2js.js-mode :as js-mode]
+            [js2clj2js.js-data-embrace-interop :as embrace-interop]
             [js2clj2js.world-map :as world-map]))
 
 (def !timers (atom {}))
@@ -81,7 +82,25 @@
     (world-map/set-data! js-polygons)
     js-polygons))
 
+(defn ^:export th-embrace-interop-js2js []
+  (world-map/set-data! world-map/empty-geojson)
+  (timer-init! :embrace-interop)
+  (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
+          _ (t-log! :embrace-interop :fetch)
+          json-input (.json response)
+          _ (t-log! :embrace-interop :json-parse)
+          js-polygons (embrace-interop/->geo-json json-input)
+          ;; TODO: We never reach here, for unknown reasons
+          _ (t-log! :embrace-interop :transform)]
+    (t-log! :embrace-interop :total)
+    (js/console.table (clj->js (get-in  @!timers [:embrace-interop :log])))
+    (js/console.debug "Total ms: :js-mode-js2js" (get-in @!timers [:embrace-interop :total]))
+
+    (world-map/set-data! js-polygons)
+    js-polygons))
+
 (comment
+  (th-embrace-interop-js2js)
   (p/let [js2clj2js-data (js2clj2js)
           js2js-data (js2js)
           js-mode-js2js-data (js-mode-js2js)
@@ -100,6 +119,7 @@
     "Digit1" (js2clj2js)
     "Digit2" (js2js)
     "Digit3" (js-mode-js2js)
+    "Digit4" (th-embrace-interop-js2js)
     :nop))
 
 (defn ^:after-load rerender! []
