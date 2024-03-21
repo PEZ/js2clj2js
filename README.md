@@ -21,8 +21,8 @@ vs
 |----------------|------:|------|
 | fetch          | 40    |  N    |
 | response->json | 431   |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
-| transform      | 3     |  Y    |
-| *Total*        | *474* |  *3 <-> 434*    |
+| transform      | 1     |  Y    |
+| *Total*        | *472* |  *1 <-> 432*    |
 
 As Clojure programmers we are keen on using Clojure data. It is immutable and has wonderful facilities for transformation from just about anything to just about anything else. As ClojureScript programmers, we are embedded in JavaScript land, with its mutable objects and inferior transformation help. Often it makes the most sense to convert any JavaScript data when it enters our applications.
 
@@ -56,6 +56,7 @@ The app has three buttons, all of which give the same result: _The countries of 
   * [js_mode.cljs](src/js2clj2js/js_mode.cljs) Button 3 uses [the experimental macro `js-interop.alpha/js`](https://github.com/applied-science/js-interop/pull/32) to enter “JS mode” and reach almost to the levels of [squint-js](https://github.com/squint-cljs/squint) in the feeling of working with JavaScript data from the comfort of Clojure.
 * Button 4 uses the same transform function as Button 1, but converts to and from Clojure data using [cljs-bean](https://github.com/mfikes/cljs-bean) (see [the update below](#update-cljs-bean) for more on this)
 * [clj_data_transit.cljs](src/js2clj2js/clj_data_transit.cljs) Button 5 skips the `response.json()` call and only picks the text from the response object and then we use `transit/read` to turn it in to string-keyed Clojure data, which is almost as convenient to work with as keyword-keyed data, at least considering the performance boost it gives compared to using `js->clj`.
+* [js_interop.cljs](src/js2clj2js/js_interop.cljs) Button 6 is the **Embrace  Interop** button, contributed by Thomas Heller. No library is used. No destructuring is enjoyed. Raw JS interop. It's the fastest of the JS data solutions for the transformation step. In fact it is quite a lot faster than using the **js-interop** library, see about [transform performance](#transform-performance) below. For the purpose of the demo app it doesn't make a noticeable difference for the user, but for other apps it may well do.
 
 **NB**: Both the `js-interop` wielding buttons have the same performance profile. They differ in their ergonomics.
 
