@@ -126,18 +126,20 @@
 (defn ^:export js-mode-as-jsi []
   (world-map/set-data! world-map/empty-geojson)
   (timer-init! :js-mode)
-  (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
-          _ (t-log! :js-mode :fetch)
-          json-input (.json response)
-          _ (t-log! :js-mode :response->json)
-          js-polygons (do-x-times transform-runs js-mode/->geo-json json-input)
-          _ (t-log! :js-mode :transform)]
-    (t-log! :js-mode :total)
-    (js/console.table (clj->js (get-in @!timers [:js-mode :log])))
-    (js/console.debug "Total ms: :js-mode" (get-in @!timers [:js-mode :total]))
+  (-> (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
+              _ (t-log! :js-mode :fetch)
+              json-input (.json response)
+              _ (t-log! :js-mode :response->json)
+              js-polygons (do-x-times transform-runs js-mode/->geo-json json-input)
+              _ (t-log! :js-mode :transform)]
+        (t-log! :js-mode :total)
+        (js/console.table (clj->js (get-in @!timers [:js-mode :log])))
+        (js/console.debug "Total ms: :js-mode" (get-in @!timers [:js-mode :total]))
 
-    (world-map/set-data! js-polygons)
-    js-polygons))
+        (world-map/set-data! js-polygons)
+        js-polygons)
+
+      (p/catch js/console.error)))
 
 (defn ^:export js-interop []
   (world-map/set-data! world-map/empty-geojson)
@@ -172,6 +174,13 @@
     (def clj-data clj-data)
     (def equality equality)
     (println equality))
+
+  (p/let [data (js-interop)
+          data (js->clj data)]
+    (js/console.log "BOOM!" (first data))
+    (def data data)
+    (count (data "features"))
+    (tap> data))
   :rcf)
 
 ;; Note, this function is not rebound on code reload
