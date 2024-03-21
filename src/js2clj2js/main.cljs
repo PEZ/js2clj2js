@@ -33,6 +33,13 @@
                          (swap! !timers assoc-in [t-id :total] total)
                          (js/console.debug (str label) total)))))
 
+(defn do-x-times [x f & args]
+  (first (mapv (fn [_]
+                 (apply f args))
+               (range x))))
+
+(def transform-runs 1)
+
 (defn ^:export js2clj2js []
   (world-map/set-data! world-map/empty-geojson)
   (timer-init! :js2clj2js)
@@ -42,7 +49,7 @@
               _ (t-log! :js2clj2js :response->json)
               clj-input (js->clj json-input :keywordize-keys true)
               _ (t-log! :js2clj2js :js->clj)
-              clj-polygons (clj-data/->geo-json clj-input)
+              clj-polygons (do-x-times transform-runs clj-data/->geo-json clj-input)
               _ (t-log! :js2clj2js :transform)
               js-polygons (clj->js clj-polygons)
               _ (t-log! :js2clj2js :clj->js)]
@@ -63,7 +70,7 @@
               _ (t-log! :bean-js2clj2js :response->json)
               clj-input (bean/->clj json-input :keywordize-keys true)
               _ (t-log! :bean-js2clj2js :bean->clj)
-              clj-polygons (clj-data/->geo-json clj-input)
+              clj-polygons (do-x-times transform-runs clj-data/->geo-json clj-input)
               _ (t-log! :bean-js2clj2js :transform)
               js-polygons (bean/->js clj-polygons)
               _ (t-log! :bean-js2clj2js :bean->js)]
@@ -86,7 +93,7 @@
               _ (t-log! :transit-js2clj2js :response->string)
               clj-input (transit/read reader json-string)
               _ (t-log! :transit-js2clj2js :transit-json->clj)
-              clj-polygons (clj-data-transit/->geo-json clj-input)
+              clj-polygons (do-x-times transform-runs clj-data-transit/->geo-json clj-input)
               _ (t-log! :transit-js2clj2js :transform)
               js-polygons (clj->js clj-polygons)
               _ (t-log! :transit-js2clj2js :clj->js)]
@@ -105,7 +112,7 @@
               _ (t-log! :as-jsi :fetch)
               json-input (.json response)
               _ (t-log! :as-jsi :response->json)
-              js-polygons (js-data/->geo-json json-input)
+              js-polygons (do-x-times transform-runs js-data/->geo-json json-input)
               _ (t-log! :as-jsi :transform)]
         (t-log! :as-jsi :total)
         (js/console.table (clj->js (get-in @!timers [:as-jsi :log])))
@@ -123,7 +130,7 @@
           _ (t-log! :js-mode :fetch)
           json-input (.json response)
           _ (t-log! :js-mode :response->json)
-          js-polygons (js-mode/->geo-json json-input)
+          js-polygons (do-x-times transform-runs js-mode/->geo-json json-input)
           _ (t-log! :js-mode :transform)]
     (t-log! :js-mode :total)
     (js/console.table (clj->js (get-in @!timers [:js-mode :log])))
@@ -139,7 +146,7 @@
               _ (t-log! :js-interop :fetch)
               json-input (.json response)
               _ (t-log! :js-interop :response->json)
-              js-polygons (js-interop/->geo-json json-input)]
+              js-polygons (do-x-times transform-runs js-interop/->geo-json json-input)]
         (t-log! :js-interop :transform)
         (t-log! :js-interop :total)
 
