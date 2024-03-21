@@ -98,36 +98,36 @@
         js-polygons)
       (p/catch js/console.error)))
 
-(defn ^:export js2js []
+(defn ^:export as-jsi []
   (world-map/set-data! world-map/empty-geojson)
-  (timer-init! :js2js)
+  (timer-init! :as-jsi)
   (-> (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
-              _ (t-log! :js2js :fetch)
+              _ (t-log! :as-jsi :fetch)
               json-input (.json response)
-              _ (t-log! :js2js :response->json)
+              _ (t-log! :as-jsi :response->json)
               js-polygons (js-data/->geo-json json-input)
-              _ (t-log! :js2js :transform)]
-        (t-log! :js2js :total)
-        (js/console.table (clj->js (get-in @!timers [:js2js :log])))
-        (js/console.debug "Total ms: :js2js" (get-in @!timers [:js2js :total]))
+              _ (t-log! :as-jsi :transform)]
+        (t-log! :as-jsi :total)
+        (js/console.table (clj->js (get-in @!timers [:as-jsi :log])))
+        (js/console.debug "Total ms: :as-jsi" (get-in @!timers [:as-jsi :total]))
 
         (world-map/set-data! js-polygons)
         js-polygons)
       (p/catch js/console.error)))
 
 
-(defn ^:export js-mode-js2js []
+(defn ^:export js-mode-as-jsi []
   (world-map/set-data! world-map/empty-geojson)
-  (timer-init! :js-mode-js2js)
+  (timer-init! :js-mode)
   (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
-          _ (t-log! :js-mode-js2js :fetch)
+          _ (t-log! :js-mode :fetch)
           json-input (.json response)
-          _ (t-log! :js-mode-js2js :response->json)
+          _ (t-log! :js-mode :response->json)
           js-polygons (js-mode/->geo-json json-input)
-          _ (t-log! :js-mode-js2js :transform)]
-    (t-log! :js-mode-js2js :total)
-    (js/console.table (clj->js (get-in @!timers [:js-mode-js2js :log])))
-    (js/console.debug "Total ms: :js-mode-js2js" (get-in @!timers [:js-mode-js2js :total]))
+          _ (t-log! :js-mode :transform)]
+    (t-log! :js-mode :total)
+    (js/console.table (clj->js (get-in @!timers [:js-mode :log])))
+    (js/console.debug "Total ms: :js-mode" (get-in @!timers [:js-mode :total]))
 
     (world-map/set-data! js-polygons)
     js-polygons))
@@ -155,10 +155,10 @@
   (transit-js2clj2js)
 
   (p/let [js2clj2js-data (js2clj2js)
-          js2js-data (js2js)
-          js-mode-js2js-data (js-mode-js2js)
+          as-jsi-data (as-jsi)
+          js-mode-as-jsi-data (js-mode-as-jsi)
           bean-js2clj2js-data (bean-js2clj2js)
-          clj-data (mapv js->clj [js2clj2js-data js2js-data js-mode-js2js-data bean-js2clj2js-data])
+          clj-data (mapv js->clj [js2clj2js-data as-jsi-data js-mode-as-jsi-data bean-js2clj2js-data])
           equality (apply = clj-data)]
     (tap> clj-data)
     (def js2clj2js-data js2clj2js-data)
@@ -171,8 +171,8 @@
 (defn ^:export key-down [e]
   (case (-> e .-code)
     "Digit1" (js2clj2js)
-    "Digit2" (js2js)
-    "Digit3" (js-mode-js2js)
+    "Digit2" (as-jsi)
+    "Digit3" (js-mode-as-jsi)
     "Digit4" (bean-js2clj2js)
     "Digit5" (transit-js2clj2js)
     "Digit6" (js-interop)
