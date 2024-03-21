@@ -1,11 +1,13 @@
 (ns js2clj2js.main
   (:require [cognitect.transit :as transit]
             [cljs-bean.core :as bean]
+            [shadow.cljs.modern :refer (js-await)]
             [promesa.core :as p]
             [js2clj2js.clj-data :as clj-data]
             [js2clj2js.clj-data-transit :as clj-data-transit]
             [js2clj2js.js-data :as js-data]
             [js2clj2js.js-mode :as js-mode]
+            [js2clj2js.js-interop :as js-interop]
             [js2clj2js.world-map :as world-map]))
 
 (def !timers (atom {}))
@@ -46,7 +48,7 @@
           js-polygons (clj->js clj-polygons)
           _ (t-log! :js2clj2js :clj->js)]
     (t-log! :js2clj2js :total)
-    (js/console.table (clj->js (get-in  @!timers [:js2clj2js :log])))
+    (js/console.table (clj->js (get-in @!timers [:js2clj2js :log])))
     (js/console.debug "Total ms: :js2clj2js" (get-in @!timers [:js2clj2js :total]))
 
     (world-map/set-data! js-polygons)
@@ -66,7 +68,7 @@
           js-polygons (bean/->js clj-polygons)
           _ (t-log! :bean-js2clj2js :bean->js)]
     (t-log! :bean-js2clj2js :total)
-    (js/console.table (clj->js (get-in  @!timers [:bean-js2clj2js :log])))
+    (js/console.table (clj->js (get-in @!timers [:bean-js2clj2js :log])))
     (js/console.debug "Total ms: :bean-js2clj2js" (get-in @!timers [:bean-js2clj2js :total]))
 
     (world-map/set-data! js-polygons)
@@ -88,7 +90,7 @@
           js-polygons (clj->js clj-polygons)
           _ (t-log! :transit-js2clj2js :clj->js)]
     (t-log! :transit-js2clj2js :total)
-    (js/console.table (clj->js (get-in  @!timers [:transit-js2clj2js :log])))
+    (js/console.table (clj->js (get-in @!timers [:transit-js2clj2js :log])))
     (js/console.debug "Total ms: :transit-js2clj2js" (get-in @!timers [:transit-js2clj2js :total]))
 
     (world-map/set-data! js-polygons)
@@ -104,7 +106,7 @@
           js-polygons (js-data/->geo-json json-input)
           _ (t-log! :js2js :transform)]
     (t-log! :js2js :total)
-    (js/console.table (clj->js (get-in  @!timers [:js2js :log])))
+    (js/console.table (clj->js (get-in @!timers [:js2js :log])))
     (js/console.debug "Total ms: :js2js" (get-in @!timers [:js2js :total]))
 
     (world-map/set-data! js-polygons)
@@ -121,11 +123,32 @@
           js-polygons (js-mode/->geo-json json-input)
           _ (t-log! :js-mode-js2js :transform)]
     (t-log! :js-mode-js2js :total)
-    (js/console.table (clj->js (get-in  @!timers [:js-mode-js2js :log])))
+    (js/console.table (clj->js (get-in @!timers [:js-mode-js2js :log])))
     (js/console.debug "Total ms: :js-mode-js2js" (get-in @!timers [:js-mode-js2js :total]))
 
     (world-map/set-data! js-polygons)
     js-polygons))
+
+(defn ^:export js-interop []
+  (world-map/set-data! world-map/empty-geojson)
+  (timer-init! :js-interop)
+  (js-await [response (js/fetch "countries-w-polygons-and-bigmacs.json")]
+    (t-log! :js-interop :fetch)
+
+    (js-await [json-input (.json response)]
+      (t-log! :js-interop :response->json)
+
+      (let [js-polygons (js-interop/->geo-json json-input)]
+        (t-log! :js-interop :transform)
+        (t-log! :js-interop :total)
+
+        (js/console.table (clj->js (get-in @!timers [:js-interop :log])))
+        (js/console.debug "Total ms: :js2clj2js" (get-in @!timers [:js-interop :total]))
+
+        (world-map/set-data! js-polygons)
+        js-polygons))
+
+    (catch e (js/console.error e))))
 
 (comment
   (transit-js2clj2js)
@@ -151,6 +174,7 @@
     "Digit3" (js-mode-js2js)
     "Digit4" (bean-js2clj2js)
     "Digit5" (transit-js2clj2js)
+    "Digit6" (js-interop)
     :nop))
 
 (defn ^:after-load rerender! []
