@@ -85,19 +85,21 @@
 (defn ^:export th-embrace-interop-js2js []
   (world-map/set-data! world-map/empty-geojson)
   (timer-init! :embrace-interop)
-  (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
-          _ (t-log! :embrace-interop :fetch)
-          json-input (.json response)
-          _ (t-log! :embrace-interop :json-parse)
-          js-polygons (embrace-interop/->geo-json json-input)
+  (-> (p/let [response (js/fetch "countries-w-polygons-and-bigmacs.json")
+              _ (t-log! :embrace-interop :fetch)
+              json-input (.json response)
+              _ (t-log! :embrace-interop :json-parse)
+              js-polygons (embrace-interop/->geo-json json-input)
           ;; TODO: We never reach here, for unknown reasons
-          _ (t-log! :embrace-interop :transform)]
-    (t-log! :embrace-interop :total)
-    (js/console.table (clj->js (get-in  @!timers [:embrace-interop :log])))
-    (js/console.debug "Total ms: :js-mode-js2js" (get-in @!timers [:embrace-interop :total]))
+              _ (t-log! :embrace-interop :transform)]
+        (t-log! :embrace-interop :total)
+        (js/console.table (clj->js (get-in  @!timers [:embrace-interop :log])))
+        (js/console.debug "Total ms: :js-mode-js2js" (get-in @!timers [:embrace-interop :total]))
 
-    (world-map/set-data! js-polygons)
-    js-polygons))
+        (world-map/set-data! js-polygons)
+        js-polygons)
+      (p/catch (fn [e]
+                 (js/console.error "Error" e)))))
 
 (comment
   (th-embrace-interop-js2js)
