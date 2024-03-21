@@ -11,9 +11,9 @@ Consider this time budget when loading some data into a JavaScript library:
 | fetch          | 40     |  N    |
 | response->json | 431    |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
 | js->clj        | 510    |  Y   |
-| transform      | 1      |  Y    |
+| transform      | 0      |  Y    |
 | clj->js        | 359    |  Y    |
-| *Total*        | *1341* |  *870 <-> 1301*    |
+| *Total*        | *1340* |  *869 <-> 1300*    |
 
 vs
 
@@ -61,13 +61,48 @@ The app has three buttons, all of which give the same result: _The countries of 
 
 It's not all bliss, of course. We're still dealing with mutable(!) data. And we do need to sprinkle in the occasional `#js` tag, and do things like `js-interop/push!`, and try not to forget to use `into-array` to create JS arrays out of Clojure vectors/lists. It's price to pay for the performance gain. As small a price as I know about. The performance gain is quite significant in this case. The demo app lets you _feel_ the difference.
 
+## Transform performance
+
+The transformation happening in the demo app is rather small. We're only dealing with 250 countries. Maybe it holds for many real world scenarios as well, that we don't need to pay too much attention to this step, when the conversion are so performance consuming. Though, it could be that the data has tons of nodes that you need to update, and then the tradeoffs may look different. The demo app can be made to run its transform many times, as a way to simulate such a scenario. Here are the results on my machine running the transforms 1 000 and 10 000 times:
+
+| Approach   | ms 1K runs | ms 10K runs |
+|------------|-----------:|------------:|
+| clj data   |          0 |           1 |
+| js-interop |        100 |        1500 |
+| as-jsi     |        800 |       10000 |
+
+* `clj-data` represents all solutions doing the transform using regular Clojure data transform functions, including the **cljs-bean**, and **Transit** examples.
+* `as-jsi` is **applied-science/js-interop**, including **js-mode**.
+* `js-interop` is Thomas Heller's “Embrace Interop” contribution, which skips using any library and thus enjoys no destructuring convenience.
+
+The reason I added 10K was that I at least wanted a figure for the Clojure data case. It actually took 0 ms in some of the 10K runs I did, but anyway, on average 1 ms, shall we say? It's at least 3 orders of magnitude faster than raw JS interop for the demo app scenario. 
+
+Raw JS interop is almost a magnitude faster than accepting the overhead added by the **applied-science/js-interop** library.
+
+But when pushed like this, the JS interop implementations have worse problems than being slower than working on Clojure data...
+
+### All JS interop implementation stop working at 1K transforms
+
+When running the transform many times, all the JS interop solutions break in that they produce bad data. It starts happening at around 1K transforms. At 10K it is consistent, the map does not get updated. This is how I run the transform many times:
+
+``` clojure
+(defn do-x-times [x f & args]
+  (first (mapv (fn [_]
+                 (apply f args))
+               (range x))))
+               
+(do-x-times 1000 clj-data/->geo-json clj-input)
+```
+
+Why this would make the data corrupt is beyond me. But, yeah, it is mutable data we are dealing with...
+
 ## I love `js->clj` ❤️
 
 Working with JavaScript data isn't exactly civilized business. It's mainly something that comes with the trade and performance considerations may in situations as those above close the door to using Clojure data for the job. In many other situations it doesn't matter. Even if you get JSON in and need JS data out. When the data structure is small taking the pains and risks involved with mutating data aren't worth the unnoticeable performance differences.
 
 In other situations bringing in dependencies such as the **js-interop** library aren't worth it. Reading `(some-> event .-target .-value)` is very clear.
 
-Anyway, when the performance hit is noticeable by the user, and transformation is involved, **js-interop** is your friend. It lets you keep much of your ergonomics while delivering performance to the user. Especially if **js-mode** leaves the experimental stage.
+Anyway, when the performance hit is noticeable by the user, and transformation is involved, and you do not want to forsake conveniences such as superior destructuring, then **js-interop** is your friend. It lets you keep much of your ergonomics while delivering performance to the user. Especially if **js-mode** leaves the experimental stage.
 
 ## Update: cljs-bean
 
@@ -78,16 +113,14 @@ On X, [Martin Klepsch made me aware](https://twitter.com/martinklepsch/status/17
 | fetch          | 40    |  N    |
 | response->json | 431   |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
 | beam->clj      | 0     |  Y   |
-| transform      | 6     |  Y    |
+| transform      | 0     |  Y    |
 | beam->js       | 500   |  Y    |
-| *Total*        | *977* |  *506 <-> 937*    |
+| *Total*        | *971* |  *500 <-> 931*    |
 
-Three things sticks out:
+Two things sticks out:
 
 1. The “conversion” to Clojure data takes so little time that it can't be measured
-2. The transform takes a bit more time (3-4 times more according to my unscientific measurements)
-   * This takes so little time for the data in this app that it largely doesn't matter anyway, I think
-3. The conversion back to JS data takes significantly more time than with regular Clojure data and `clj->js`
+2. The conversion back to JS data takes significantly more time than with regular Clojure data and `clj->js`
    * But not nearly as much time as we gain from the conversion to Clojure data taking no time at all
 
 This means that **beam-cljs** is not a viable option for the use case in this article/demo app. But for cases where you get JSON/JS in and do not need to produce JS data out it is bloody excellent! This find alone made it worth spending the time writing this article and app.
@@ -101,9 +134,9 @@ At [/r/clojure I learnt that you can too destructure string keys](https://www.re
 | fetch             | 40     |  N    |
 | response->string  | 267    |  Y/N[*](#is-the-ui-thread-locking-or-not)    |
 | transit-json->clj | 216    |  Y   |
-| transform         | 1      |  Y    |
+| transform         | 0      |  Y    |
 | clj->js           | 359    |  Y    |
-| *Total*           | *883*  |  *576 <-> 843*    |
+| *Total*           | *882*  |  *575 <-> 842*    |
 
 We can see that David Nolen was very right about performance gains between `js->clj` and using `transit/read`. In addition to that we don't need to use JS to convert the response to JSON, so we save time there as well. This is quite much better, performance-wise than the naïve `js->clj` approach. And about the small price we pay, string key destructuring is very convenient! We are still locking the UI thread much longer than when using js-interop, though, so it is not really an option for the use case of the demo scenario.
 
