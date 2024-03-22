@@ -72,6 +72,8 @@ The transformation happening in the demo app is rather small. We're only dealing
 | js-interop |        100 |        1500 |
 | as-jsi     |        800 |       10000 |
 
+**NB**: The transform code, for the JS data implementations does not allow being repeated like I do here. See [below about data corruption](#all-js-interop-implementation-stop-working-at-1k-transforms).
+
 * `clj-data` represents all solutions doing the transform using regular Clojure data transform functions, including the **cljs-bean**, and **Transit** examples.
 * `as-jsi` is **applied-science/js-interop**, including **js-mode**.
 * `js-interop` is Thomas Heller's “Embrace Interop” contribution, which skips using any library and thus enjoys no destructuring convenience.
@@ -96,6 +98,16 @@ When running the transform many times, all the JS interop solutions break in tha
 ```
 
 Why this would make the data corrupt is beyond me. But, yeah, it is mutable data we are dealing with...
+
+Comment from Thomas Heller about this:
+
+> Correct, the answer is mutation of the input data.
+>
+> For example my close-coords implementation adds the first element to the end by mutating the existing array. Of course if you keep repeating that it just keeps growing one item per repeat. Nevermind the fact that this probably breaks the polygon rendering, it means after 1k runs the array is +1k items for each single polygon array. I don't even know what that amount to in total, but I'm not surprised it blows up.
+>
+> You could of course just change the implementation to do a defensive copy and not mutate the source inputs and there may be reasons to do that. It was not my impression that the benchmark should be doing that, but it is a one line change.
+
+That makes sense. And I think this also means that the problem is probably skewing the performance measures wildly. We shouldn't take those seriously without further investigation/fixing the problem in the direction Thomas points.
 
 ## I love `js->clj` ❤️
 
