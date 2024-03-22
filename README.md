@@ -86,28 +86,11 @@ But when pushed like this, the JS interop implementations have worse problems th
 
 ### All JS interop implementation stop working at 1K transforms
 
-When running the transform many times, all the JS interop solutions break in that they produce bad data. It starts happening at around 1K transforms. At 10K it is consistent, the map does not get updated. This is how I run the transform many times:
+When running the transform many times, all the JS interop solutions, as they are currently written, break when being run more than once. This is because in the transform we close the polygons by pushing the first coordinate to the end of the array. Then the next time around we push the same coordinate to the end of the new array. And so on and so forth. It's not noticable at few repeats, but after a while the polygon list gets so large that something inside Maplibre GL breaks when applying the polygons to the map.
 
-``` clojure
-(defn do-x-times [x f & args]
-  (first (mapv (fn [_]
-                 (apply f args))
-               (range x))))
-               
-(do-x-times 1000 clj-data/->geo-json clj-input)
-```
+See also: [Comment from Thomas Heller](https://github.com/PEZ/js2clj2js/commit/1d60cedfb14dc397fbd36d5cb3b4ebec529de6d8#r140098282) about this.
 
-Why this would make the data corrupt is beyond me. But, yeah, it is mutable data we are dealing with...
-
-[Comment from Thomas Heller](https://github.com/PEZ/js2clj2js/commit/1d60cedfb14dc397fbd36d5cb3b4ebec529de6d8#r140098282) about this:
-
-> Correct, the answer is mutation of the input data.
->
-> For example my close-coords implementation adds the first element to the end by mutating the existing array. Of course if you keep repeating that it just keeps growing one item per repeat. Nevermind the fact that this probably breaks the polygon rendering, it means after 1k runs the array is +1k items for each single polygon array. I don't even know what that amount to in total, but I'm not surprised it blows up.
->
-> You could of course just change the implementation to do a defensive copy and not mutate the source inputs and there may be reasons to do that. It was not my impression that the benchmark should be doing that, but it is a one line change.
-
-That makes sense. And I think this also means that the problem is probably skewing the performance measures wildly. We shouldn't take those seriously without further investigation/fixing the problem in the direction Thomas points.
+I think this also means that the problem is probably skewing the performance measures wildly. We shouldn't take those seriously without further investigation/fixing the problem.
 
 ## I love `js->clj` ❤️
 
