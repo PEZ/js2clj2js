@@ -99,7 +99,7 @@ When running the transform many times, all the JS interop solutions break in tha
 
 Why this would make the data corrupt is beyond me. But, yeah, it is mutable data we are dealing with...
 
-Comment from Thomas Heller about this:
+[Comment from Thomas Heller](https://github.com/PEZ/js2clj2js/commit/1d60cedfb14dc397fbd36d5cb3b4ebec529de6d8#r140098282) about this:
 
 > Correct, the answer is mutation of the input data.
 >
